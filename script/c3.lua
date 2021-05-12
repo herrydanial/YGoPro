@@ -1,0 +1,122 @@
+--Blue-Eyes Hydra Dragon
+function c3.initial_effect(c)
+	--Summon
+	aux.AddXyzProcedure(c,nil,4,0)
+	c:EnableReviveLimit()
+	--Special Summon
+	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(3,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e1:SetProperty(EFFECT_FLAG_DAMAGE_STEP)
+	e1:SetCode(EVENT_TO_GRAVE)
+	e1:SetCondition(c3.spcon)
+	e1:SetTarget(c3.sptg)
+	e1:SetOperation(c3.spop)
+	c:RegisterEffect(e1)
+	--Immune
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE)
+	e2:SetCode(EFFECT_IMMUNE_EFFECT)
+	e2:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e2:SetRange(LOCATION_MZONE)
+	e2:SetValue(c3.efilter)
+	c:RegisterEffect(e2)
+	--Cannot be Tributed
+	local e3=Effect.CreateEffect(c)
+	e3:SetType(EFFECT_TYPE_SINGLE)
+	e3:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3:SetRange(LOCATION_MZONE)
+	e3:SetCode(EFFECT_UNRELEASABLE_SUM)
+	e3:SetValue(1)
+	c:RegisterEffect(e3)
+	local e4=e3:Clone()
+	e4:SetCode(EFFECT_UNRELEASABLE_NONSUM)
+	c:RegisterEffect(e4)
+	--Cannot be Target
+	local e5=Effect.CreateEffect(c)
+	e5:SetType(EFFECT_TYPE_SINGLE)
+	e5:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e5:SetRange(LOCATION_MZONE)
+	e5:SetValue(1)
+	c:RegisterEffect(e5)
+    --Cannot Switch Controller
+	local e8=Effect.CreateEffect(c)
+	e8:SetType(EFFECT_TYPE_SINGLE)
+	e8:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e8:SetRange(LOCATION_MZONE)
+	e8:SetCode(EFFECT_CANNOT_CHANGE_CONTROL)
+	c:RegisterEffect(e8)
+    --Cannot be Destroyed by Card Effect
+	local e10=Effect.CreateEffect(c)
+	e10:SetType(EFFECT_TYPE_SINGLE)
+	e10:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e10:SetRange(LOCATION_MZONE)
+	e10:SetCode(EFFECT_INDESTRUCTABLE_EFFECT)
+	e10:SetValue(1)
+	c:RegisterEffect(e10)
+	--Cannot be Removed
+	local e11=Effect.CreateEffect(c)
+	e11:SetType(EFFECT_TYPE_SINGLE)
+	e11:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e11:SetRange(LOCATION_MZONE)
+	e11:SetCode(EFFECT_CANNOT_REMOVE)
+	c:RegisterEffect(e11)
+	--Cannot Send to Grave
+	local e12=Effect.CreateEffect(c)
+	e12:SetType(EFFECT_TYPE_SINGLE)
+	e12:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e12:SetRange(LOCATION_MZONE)
+	e12:SetCode(EFFECT_CANNOT_TO_GRAVE)
+	c:RegisterEffect(e12)
+	--Cannot Return to Hand
+	local e13=Effect.CreateEffect(c)
+	e13:SetType(EFFECT_TYPE_SINGLE)
+	e13:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e13:SetRange(LOCATION_MZONE)
+	e13:SetCode(EFFECT_CANNOT_TO_HAND)
+	c:RegisterEffect(e13)
+	--Cannot Return to Deck
+	local e14=Effect.CreateEffect(c)
+	e14:SetType(EFFECT_TYPE_SINGLE)
+	e14:SetProperty(EFFECT_FLAG_SINGLE_RANGE+EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e14:SetRange(LOCATION_MZONE)
+	e14:SetCode(EFFECT_CANNOT_TO_DECK)
+	c:RegisterEffect(e14)
+end
+function c3.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():GetPreviousLocation()==LOCATION_MZONE  and e:GetHandler():IsReason(REASON_DESTROY)
+end
+function c3.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return true end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,e:GetHandler(),1,0,0)
+	Duel.SetChainLimit(aux.FALSE)
+end
+function c3.spop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	local count = 0
+	if e:GetLabel() then
+		count =  e:GetLabel()
+	end
+	if c:IsRelateToEffect(e) and Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)~=0 then
+		local e1=Effect.CreateEffect(c)
+		e1:SetType(EFFECT_TYPE_SINGLE)
+		e1:SetCode(EFFECT_UPDATE_ATTACK)
+		e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+		e1:SetReset(RESET_EVENT+0x1fe0000)
+		e1:SetValue(3000*(1+count))
+		c:RegisterEffect(e1)
+		local e2=Effect.CreateEffect(c)
+		e2:SetType(EFFECT_TYPE_FIELD)
+		e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+		e2:SetTargetRange(1,0)
+		e2:SetCode(EFFECT_SKIP_DP)
+		e2:SetReset(RESET_PHASE+PHASE_DRAW)
+		c:RegisterEffect(e2)
+		e:SetLabel(count+1)
+	end
+end
+function c3.efilter(e,te)
+	return te:GetOwner()~=e:GetOwner()
+end
